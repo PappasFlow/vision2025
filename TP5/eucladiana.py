@@ -44,14 +44,24 @@ def apply_euclidean_transformation(image, angle, tx, ty):
     # Obtén las dimensiones de la imagen
     rows, cols = image.shape[:2]
 
-    # Matriz de transformación euclidiana
-    transformation_matrix = np.array([
-        [np.cos(angle), -np.sin(angle), tx],
-        [np.sin(angle),  np.cos(angle), ty]
-    ])
+    # Calcula el tamaño del nuevo lienzo
+    cos_angle = abs(np.cos(angle))
+    sin_angle = abs(np.sin(angle))
+    new_width = int(cols * cos_angle + rows * sin_angle)
+    new_height = int(cols * sin_angle + rows * cos_angle)
 
-    # Aplica la transformación a la imagen
-    transformed_image = cv2.warpAffine(image, transformation_matrix,(cols, rows))
+    # Calcula el centro de la imagen original
+    original_center = (cols / 2, rows / 2)
+
+    # Calcula la matriz de rotación alrededor del centro original
+    rotation_matrix = cv2.getRotationMatrix2D(original_center, np.degrees(angle), 1)
+
+    # Ajusta la traslación para centrar la imagen en el nuevo lienzo
+    rotation_matrix[0, 2] += (new_width / 2) - original_center[0] + tx
+    rotation_matrix[1, 2] += (new_height / 2) - original_center[1] + ty
+
+    # Aplica la transformación a la imagen con el nuevo tamaño
+    transformed_image = cv2.warpAffine(image, rotation_matrix, (new_width, new_height))
 
     return transformed_image
 
