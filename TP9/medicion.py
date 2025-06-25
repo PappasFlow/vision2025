@@ -6,7 +6,7 @@ import sys
 if(len(sys.argv)>1):
     image_path = sys.argv[1]
 else:
-    image_path = 'piso.jpg'  # Ruta por defecto de la imagen a procesar
+    image_path = 'p1.jpg'  # Ruta por defecto de la imagen a procesar
 
 # Mensajes de ayuda para el usuario
 print("<r> Image restored.")  # Mensaje para restaurar la imagen
@@ -175,6 +175,29 @@ def measure_distance(event, x, y, flags, param):
             
             measurement_points = []  # Reinicia la lista de puntos seleccionados
 
+# Valores fijos para el ancho y alto en metros de la zona seleccionada
+ZONE_WIDTH_METERS = 3.08 # Ancho en metros
+ZONE_HEIGHT_METERS =1.23  # Alto en metros
+
+def compute_scale_factor(rect_width, rect_height):
+    """
+    Calcula el factor de escala (metros por píxel) basado en las dimensiones rectificadas.
+
+    Parámetros:
+    - rect_width: Ancho de la ventana rectificada en píxeles.
+    - rect_height: Alto de la ventana rectificada en píxeles.
+
+    Retorna:
+    - Factor de escala en metros por píxel.
+    """
+    scale_x = ZONE_WIDTH_METERS / rect_width
+    scale_y = ZONE_HEIGHT_METERS / rect_height
+    return (scale_x + scale_y) / 2  # Promedio de las escalas en X e Y
+
+# Valores fijos para el ancho y alto en píxeles de la zona seleccionada
+ZONE_WIDTH_PIXELS = 1000  # Ancho en píxeles (puedes ajustar según tu preferencia)
+ZONE_HEIGHT_PIXELS = int(ZONE_WIDTH_PIXELS * (ZONE_HEIGHT_METERS / ZONE_WIDTH_METERS))  # Alto proporcional en píxeles
+
 # Cargar la imagen base desde el archivo
 img = cv2.imread(image_path)  # Carga la imagen desde la ruta especificada
 if img is None:  # Verifica si la imagen se cargó correctamente
@@ -198,20 +221,22 @@ while True:
             # Ordenar los puntos seleccionados
             ordered_points = order_points(np.array(points_homography))
 
-            # Calcular el tamaño de la ventana rectificada
-            rect_width, rect_height = compute_rectified_size(ordered_points)
-
             # Define los puntos correspondientes en la imagen destino (rectangular)
-            points_dst = [(0, 0), (rect_width - 1, 0), (rect_width - 1, rect_height - 1), (0, rect_height - 1)]
+            points_dst = [(0, 0), (ZONE_WIDTH_PIXELS - 1, 0), 
+                          (ZONE_WIDTH_PIXELS - 1, ZONE_HEIGHT_PIXELS - 1), (0, ZONE_HEIGHT_PIXELS - 1)]
 
             # Calcular la homografía
             homography_matrix = compute_homography(ordered_points, points_dst)
 
             # Rectificar la imagen
-            rectified_img = rectify_image(original_img, homography_matrix, (rect_width, rect_height))
+            rectified_img = rectify_image(original_img, homography_matrix, (ZONE_WIDTH_PIXELS, ZONE_HEIGHT_PIXELS))
             cv2.namedWindow('calibrada')  # Crea una nueva ventana para la imagen rectificada
             cv2.imshow('calibrada', rectified_img)  # Muestra la imagen rectificada
             cv2.setMouseCallback('calibrada', measure_distance)  # Asigna el callback para medir distancias
+
+            # Calcular el factor de escala
+            scale_factor = compute_scale_factor(ZONE_WIDTH_PIXELS, ZONE_HEIGHT_PIXELS)
+            print(f"Factor de escala calculado automáticamente: {scale_factor:.6f} metros/píxel")
             print("\nVentana calibrada para medición. Seleccione dos puntos para medir la distancia.")
         else:
             print("Debe seleccionar exactamente 4 puntos no colineales.")  # Mensaje de error

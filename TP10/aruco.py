@@ -7,9 +7,8 @@ import datetime  # Importar el módulo datetime
 
 # Diccionario de empleados con información asociada
 empleado = {
-    62: {"name": "Juan", "status": False},
-    40: {"name": "Ana", "status": False },
-    42: {"name": "Luis", "status": False}
+    1: {"name": "Joaquin", "status": False},
+    2: {"name": "Melina", "status": False }
 }
 
 # Verificar si se pasa un argumento para usar un archivo de video

@@ -110,7 +110,6 @@ while True:
 
     if key == ord('a'):  # Si se presiona la tecla 'a'
         if len(points_src) == 3:  # Verifica que se hayan seleccionado 3 puntos
-            print("Seleccione 3 puntos correspondientes en la imagen destino.")  # Mensaje para el usuario
             # Define los puntos correspondientes en la imagen destino
             points_dst = [(0, 0), (second_img.shape[1] - 1, 0), (0, second_img.shape[0] - 1)]
 
